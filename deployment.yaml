@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superset
+  namespace: superset
+  labels:
+    app: superset
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: superset
+  template:
+    metadata:
+      labels:
+        app: superset
+    spec:
+      containers:
+      - name: superset
+        image: your-registry/superset:latest # Здесь Jenkins будет менять тег
+        ports:
+        - containerPort: 8088
+        env:
+        - name: SUPERSET_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: superset-secrets
+              key: secret-key
+        - name: SUPERSET_CONFIG_PATH
+          value: /app/superset_config.py
+        # Настройки для работы с SQLite внутри контейнера
+        - name: SUPERSET_DB
+          value: sqlite:////app/superset_home/superset.db
+        volumeMounts:
+        - name: superset-data
+          mountPath: /app/superset_home
+        - name: superset-config
+          mountPath: /app/superset_config.py
+          subPath: superset_config.py
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8088
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8088
+          initialDelaySeconds: 60
+          periodSeconds: 20
+      volumes:
+      - name: superset-data
+        persistentVolumeClaim:
+          claimName: superset-pvc # Ссылка на PVC (создадим ниже)
+      - name: superset-config
+        configMap:
+          name: superset-config # Ссылка на ConfigMap (создадим ниже)
