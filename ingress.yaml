@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: superset-ingress
+  namespace: superset
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # Указываем, что у нас нет TLS, работаем по HTTP
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m" # Для загрузки датасетов
+spec:
+  rules:
+  - host: superset.local # Локальное имя (не обязательно, можно использовать IP ниже)
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: superset-service
+            port:
+              number: 80
