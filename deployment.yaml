@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: superset
-        image: your-registry/superset:latest # Здесь Jenkins будет менять тег
+        image: alexsoftav72/superset:latest # Здесь Jenkins будет менять тег
         ports:
         - containerPort: 8088
         env:
